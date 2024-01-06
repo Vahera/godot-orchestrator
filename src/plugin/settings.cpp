@@ -85,7 +85,7 @@ void OrchestratorSettings::_register_settings()
 {
     // Orchestrator v2
     _settings.emplace_back(RESOURCE_SETTING("settings/default_type", "Object", "Node"));
-    _settings.emplace_back(RANGE_SETTING("settings/runtime_max_call_stack", "256,1024", 1024));
+    _settings.emplace_back(RANGE_SETTING("settings/runtime_max_call_stack", "256,1024,256", 1024));
     _settings.emplace_back(SENUM_SETTING("settings/log_level", "FATAL,ERROR,WARN,INFO,DEBUG,TRACE", "INFO"));
     _settings.emplace_back(BOOL_SETTING("settings/save_copy_as_text_resource", false));
 
@@ -94,6 +94,8 @@ void OrchestratorSettings::_register_settings()
 
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_type_icons", true));
     _settings.emplace_back(BOOL_SETTING("ui/nodes/show_conversion_nodes", false));
+    _settings.emplace_back(RANGE_SETTING("ui/nodes/border_radius", "0,24,1", 6));
+    _settings.emplace_back(BOOL_SETTING("ui/nodes/titlebar/use_gradient_colors", false));
 
     // Nodes
     _settings.emplace_back(COLOR_NO_ALPHA_SETTING("ui/node_colors/constants_and_literals", Color(0.271, 0.392, 0.2)));
