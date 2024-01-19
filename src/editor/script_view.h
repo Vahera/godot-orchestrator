@@ -26,6 +26,7 @@
 #include <godot_cpp/classes/panel.hpp>
 #include <godot_cpp/classes/panel_container.hpp>
 #include <godot_cpp/classes/popup_menu.hpp>
+#include <godot_cpp/classes/scroll_container.hpp>
 #include <godot_cpp/classes/tab_container.hpp>
 #include <godot_cpp/classes/tree.hpp>
 #include <godot_cpp/classes/v_box_container.hpp>
@@ -50,7 +51,7 @@ protected:
     bool _expanded{ true };                   //! Whether the section is currently expanded
     bool _theme_changing{ false };            //! Whether the theme is being changed
 
-    static void _bind_methods() {}
+    static void _bind_methods();
 
     /// Clears the tree of all items but the root.
     void _clear_tree();
@@ -505,6 +506,11 @@ private:
 
     /// Dispatched when function override is requested
     void _on_override_function();
+
+    /// Dispatched when requested to scroll to the specified item
+    /// @param p_item the tree item to scroll to
+    /// @param p_container the scroll container to be manipulated
+    void _on_scroll_to_item(TreeItem* p_item, ScrollContainer* p_container);
 
     /// Dispatched when a user creates a signal connection via the Editor UI
     /// @param p_object the object to whom is being connected
