@@ -65,8 +65,8 @@ void OScriptNodeResourcePath::post_initialize()
 
 void OScriptNodeResourcePath::allocate_default_pins()
 {
-    Ref<OScriptNodePin> path = create_pin(PD_Output, "path", Variant::STRING);
-    path->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> path = create_output_pin(PT_Data, "path", Variant::STRING);
+    path->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     path->set_label(_path);
 
     super::allocate_default_pins();

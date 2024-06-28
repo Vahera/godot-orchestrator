@@ -16,15 +16,18 @@
 //
 #include "graph_node.h"
 
+#include "common/dictionary_utils.h"
 #include "common/logger.h"
 #include "common/scene_utils.h"
 #include "common/settings.h"
+#include "common/string_utils.h"
 #include "editor/plugins/orchestrator_editor_plugin.h"
 #include "graph_edit.h"
 #include "graph_node_pin.h"
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_function.h"
 #include "script/nodes/functions/call_script_function.h"
+#include "script/nodes/functions/function_entry.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -676,6 +679,13 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
                 UtilityFunctions::print("--- Dump Node ", _node->get_class(), " ---");
                 UtilityFunctions::print("Position: ", _node->get_position());
 
+                Ref<OScriptNodeFunctionEntry> entry = _node;
+                if (entry.is_valid())
+                    UtilityFunctions::print(DictionaryUtils::from_method(entry->get_function()->get_method_info()));
+                Ref<OScriptNodeCallFunction> caller = _node;
+                if (caller.is_valid())
+                    UtilityFunctions::print(DictionaryUtils::from_method(caller->get_method_info()));
+
                 Vector<Ref<OScriptNodePin>> pins = _node->get_all_pins();
                 UtilityFunctions::print("Pins: ", pins.size());
                 for (const Ref<OScriptNodePin>& pin : pins)
@@ -685,7 +695,7 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
                                             " Default: ", pin->get_effective_default_value(),
                                             " Type: ", pin->get_pin_type_name(), " (", pin->get_type(), ")",
                                             " Target: ", pin->get_target_class(),
-                                            " Flags: ", pin->get_flags().operator Variant());
+                                            " Flags: ", StringUtils::join(",", pin->get_flags()));
                 }
                 break;
             }

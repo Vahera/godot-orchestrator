@@ -121,56 +121,42 @@ public:
 
 void OScriptNodeDialogueMessage::post_initialize()
 {
-    Ref<OScriptNodePin> scene = find_pin("scene", PD_Input);
-    if (scene.is_valid())
-        scene->set_file_types("*.scn,*.tscn; Scene Files");
-
     for (const Ref<OScriptNodePin>& pin : find_pins(PD_Input))
     {
         if (pin->get_pin_name().begins_with("choice_"))
             _choices++;
     }
+
+    reconstruct_node();
+
     super::post_initialize();
 }
 
 void OScriptNodeDialogueMessage::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-
-    Ref<OScriptNodePin> name = create_pin(PD_Input, "name", Variant::STRING);
-    name->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::MULTILINE);
-    name->set_label("Speaker");
-
-    Ref<OScriptNodePin> text = create_pin(PD_Input, "text", Variant::STRING);
-    text->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::MULTILINE);
-    text->set_label("Message");
-
-    Ref<OScriptNodePin> scene = create_pin(PD_Input, "scene", Variant::STRING, "");
-    scene->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::FILE);
-    scene->set_file_types("*.scn,*.tscn; Scene Files");
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, "name", PropertyInfo(Variant::STRING, "name", PROPERTY_HINT_MULTILINE_TEXT))->set_label("Speaker");
+    create_input_pin(PT_Data, "text", PropertyInfo(Variant::STRING, "text", PROPERTY_HINT_MULTILINE_TEXT))->set_label("Message");
+    create_input_pin(PT_Data, "scene", PropertyInfo(Variant::STRING, "scene", PROPERTY_HINT_FILE, "*.scn,*.tscn; Scene Files"));
 
     if (_choices == 0)
     {
-        create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+        create_output_pin(PT_Execution, "ExecOut");
     }
     else
     {
+        // todo: find a better solution than this
         // This is a hack to control row alignments with inputs.
         for (int i = 0; i < 4; i++)
-        {
-            Ref<OScriptNodePin> pin = create_pin(PD_Output, "temp_" + itos(i));
-            pin->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::HIDDEN);
-        }
+            create_output_pin(PT_Execution, "temp_" + itos(i))->set_flag(OScriptNodePin::Flags::HIDDEN);
 
+        const PropertyInfo property = PropertyInfo(Variant::OBJECT, "choice", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT, OScriptNodeDialogueChoice::get_class_static());
         for (int i = 0; i < _choices; i++)
         {
             const String pin_name = _get_pin_name_given_index(i);
-            Ref<OScriptNodePin> input = create_pin(PD_Input, pin_name, Variant::OBJECT);
-            input->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::IGNORE_DEFAULT);
-            input->set_target_class(OScriptNodeDialogueChoice::get_class_static());
-
-            Ref<OScriptNodePin> output = create_pin(PD_Output, vformat("%s_out", pin_name));
-            output->set_flags(OScriptNodePin::Flags::EXECUTION);
+            // todo: again this shows some odd pin choices when in action menu
+            create_input_pin(PT_Data, pin_name, property)->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
+            create_output_pin(PT_Execution, vformat("%s_out", pin_name));
         }
     }
 

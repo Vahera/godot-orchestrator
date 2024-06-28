@@ -78,6 +78,36 @@ void OScriptNode::_set_pin_data(const TypedArray<Dictionary>& p_pin_data)
     }
 }
 
+Ref<OScriptNodePin> OScriptNode::_create_pin_internal(EPinDirection p_direction, EPinType p_type, const String& p_name, const PropertyInfo& p_property, const Variant& p_default_value)
+{
+    Ref<OScriptNodePin> pin = OScriptNodePin::create(this);
+    if (pin.is_valid())
+    {
+        pin->_direction = p_direction;
+        pin->_property.name = p_name;
+        pin->_pin_type = p_type;
+
+        switch (p_type)
+        {
+            case PT_Execution:
+                pin->set_flag(OScriptNodePin::Flags::EXECUTION);
+                break;
+            case PT_Data:
+                pin->set_flag(OScriptNodePin::Flags::DATA);
+                break;
+        }
+
+        pin->set_property(p_property);
+
+        const Variant::Type default_value_type = p_default_value.get_type() != Variant::NIL ? p_default_value.get_type() : p_property.type;
+        pin->set_generated_default_value(VariantUtils::make_default(default_value_type));
+
+        _pins.push_back(pin);
+    }
+    return pin;
+
+}
+
 bool OScriptNode::_is_in_editor()
 {
     return OS::get_singleton()->has_feature("editor");
@@ -222,6 +252,36 @@ String OScriptNode::get_help_topic() const
     #endif
 }
 
+Ref<OScriptNodePin> OScriptNode::create_input_pin(EPinType p_pin_type, const String& p_name, const PropertyInfo& p_property, const Variant& p_default_value)
+{
+    return _create_pin_internal(PD_Input, p_pin_type, p_name, p_property, p_default_value);
+}
+
+Ref<OScriptNodePin> OScriptNode::create_input_pin(EPinType p_pin_type, const String& p_name, Variant::Type p_type, const Variant& p_default_value)
+{
+    return _create_pin_internal(PD_Input, p_pin_type, p_name, PropertyInfo(p_type, p_name), p_default_value);
+}
+
+Ref<OScriptNodePin> OScriptNode::create_input_pin(EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value)
+{
+    return _create_pin_internal(PD_Input, p_pin_type, p_property.name, p_property, p_default_value);
+}
+
+Ref<OScriptNodePin> OScriptNode::create_output_pin(EPinType p_pin_type, const String& p_name, const PropertyInfo& p_property, const Variant& p_default_value)
+{
+    return _create_pin_internal(PD_Output, p_pin_type, p_name, p_property, p_default_value);
+}
+
+Ref<OScriptNodePin> OScriptNode::create_output_pin(EPinType p_pin_type, const String& p_name, Variant::Type p_type, const Variant& p_default_value)
+{
+    return _create_pin_internal(PD_Output, p_pin_type, p_name, PropertyInfo(p_type, p_name), p_default_value);
+}
+
+Ref<OScriptNodePin> OScriptNode::create_output_pin(EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value)
+{
+    return _create_pin_internal(PD_Output, p_pin_type, p_property.name, p_property, p_default_value);
+}
+
 Ref<OScriptNodePin> OScriptNode::create_pin(EPinDirection p_direction, const String& p_name, Variant::Type p_type,
                                             const Variant& p_default_value, int p_index)
 {
@@ -292,11 +352,11 @@ Vector<Ref<OScriptNodePin>> OScriptNode::get_eligible_autowire_pins(const Ref<OS
     for (const Ref<OScriptNodePin>& pin : get_all_pins())
     {
         // Invalid or hidden pins are skipped
-        if (!pin.is_valid() && pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+        if (!pin.is_valid() && pin->is_hidden())
             continue;
 
         // Skip pins that are specifically flagged as non-autowirable
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::NO_AUTOWIRE))
+        if (!pin->can_be_autowired())
             continue;
 
         // Cannot connect input to input or output to output
@@ -361,7 +421,7 @@ void OScriptNode::_cache_pin_indices()
     int output_index = 0;
     for (const Ref<OScriptNodePin>& pin : _pins)
     {
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::HIDDEN))
+        if (pin->is_hidden())
             continue;
 
         if (pin->is_input())

@@ -55,8 +55,10 @@ void OrchestratorGraphNodePinFile::_on_show_file_dialog(Button* p_button)
     dialog->set_initial_position(Window::WINDOW_INITIAL_POSITION_CENTER_SCREEN_WITH_MOUSE_FOCUS);
     dialog->set_hide_on_ok(true);
     dialog->set_title("Select a file");
-    if (!_pin->get_file_types().is_empty())
-        dialog->set_filters(Array::make(_pin->get_file_types()));
+
+    const String file_types = _pin->get_file_types();
+    if (!file_types.is_empty())
+        dialog->set_filters(Array::make(file_types));
 
     add_child(dialog);
 

@@ -34,6 +34,9 @@ protected:
     bool _set(const StringName& p_name, const Variant& p_value);
     //~ End Wrapped Interface
 
+    /// Gets the referenced node from the current active scene, if possible.
+    Node* _get_referenced_node() const;
+
 public:
 
     //~ Begin OScriptNode Interface

@@ -74,13 +74,11 @@ bool OScriptNodeInstantiateScene::_set(const StringName& p_name, const Variant& 
 
 void OScriptNodeInstantiateScene::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    Ref<OScriptNodePin> scene = create_pin(PD_Input, "scene", Variant::STRING, _scene);
-    scene->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::FILE);
-    scene->set_file_types("*.scn,*.tscn; Scene Files");
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, "scene", PropertyInfo(Variant::STRING, "scene", PROPERTY_HINT_FILE, "*.scn,*.tscn; Scene Files"), _scene);
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "scene_root", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_output_pin(PT_Execution, "ExecOut");
+    create_output_pin(PT_Data, PropertyInfo(Variant::OBJECT, "scene_root"));
 
     super::allocate_default_pins();
 }
@@ -91,9 +89,7 @@ void OScriptNodeInstantiateScene::post_initialize()
     if (scene.is_valid())
     {
         _scene = scene->get_effective_default_value();
-
-        // This is not currently persisted, so reset this
-        scene->set_file_types("*.scn,*.tscn; Scene Files");
+        reconstruct_node();
     }
     super::post_initialize();
 }

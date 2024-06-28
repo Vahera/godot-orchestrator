@@ -16,6 +16,7 @@
 //
 #include "script/nodes/memory/memory.h"
 
+#include "common/property_utils.h"
 #include "common/version.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -138,11 +139,18 @@ bool OScriptNodeNew::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
+void OScriptNodeNew::post_initialize()
+{
+    reconstruct_node();
+    super::post_initialize();
+}
+
 void OScriptNodeNew::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "Instance", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_output_pin(PT_Execution, "ExecOut");
+
+    create_output_pin(PT_Data, PropertyUtils::create_object("instance", _class_name));
 
     super::allocate_default_pins();
 }
@@ -210,9 +218,9 @@ void OScriptNodeFree::_bind_methods()
 
 void OScriptNodeFree::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "Target", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::IGNORE_DEFAULT);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, PropertyUtils::create_object("target"))->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
+    create_output_pin(PT_Execution, "ExecOut");
 
     super::allocate_default_pins();
 }

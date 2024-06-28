@@ -18,6 +18,7 @@
 
 #include "common/dictionary_utils.h"
 #include "common/method_utils.h"
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -281,16 +282,17 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
 {
     if (_has_execution_pins(p_method))
     {
-        create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-        create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+        create_input_pin(PT_Execution, "ExecIn");
+        create_output_pin(PT_Execution, "ExecOut");
     }
 
     _chainable = false;
+    Ref<OScriptNodePin> target;
+
     if (get_argument_offset() != 0)
     {
         Variant::Type target_type = _reference.target_type != Variant::NIL ? _reference.target_type : Variant::OBJECT;
-        Ref<OScriptNodePin> target = create_pin(PD_Input, "target", target_type);
-        target->set_flags(OScriptNodePin::Flags::DATA);
+        target = create_input_pin(PT_Data, "target", target_type);
         if (_reference.target_type == Variant::NIL)
         {
             if (_function_flags.has_flag(FF_IS_SELF))
@@ -311,12 +313,8 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
     size_t default_index = 0;
     for (const PropertyInfo& pi : p_method.arguments)
     {
-        Ref<OScriptNodePin> pin = _create_pin_for_property(pi, PD_Input, pi.name, OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-        if (pin.is_valid())
-        {
-            if (argument_index >= default_start_index)
-                pin->set_default_value(p_method.default_arguments[default_index++]);
-        }
+        const Variant default_value = argument_index >= default_start_index ? p_method.default_arguments[default_index++] : Variant();
+        create_input_pin(PT_Data, pi, default_value)->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
         argument_index++;
     }
 
@@ -325,56 +323,22 @@ void OScriptNodeCallFunction::_create_pins_for_method(const MethodInfo& p_method
         const int base_arg_count = _reference.method.arguments.size() + 1;
         for (int i = 0; i < _vararg_count; i++)
         {
-            Ref<OScriptNodePin> vararg_pin = create_pin(PD_Input, "arg" + itos(base_arg_count + i), Variant::NIL);
-            vararg_pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+            const String pin_name = "arg" + itos(base_arg_count + i);
+            create_input_pin(PT_Data, pin_name, Variant::NIL)->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
         }
     }
 
     if (MethodUtils::has_return_value(p_method))
     {
-        Ref<OScriptNodePin> rv = _create_pin_for_property(p_method.return_val, PD_Output, "return_value", OScriptNodePin::Flags::DATA);
-        if (rv->get_type() == Variant::OBJECT)
-        {
-            rv->set_flags(rv->get_flags() | OScriptNodePin::Flags::SHOW_LABEL);
-            rv->set_label(p_method.return_val.class_name);
-        }
-        else
-            rv->set_flags(rv->get_flags() | OScriptNodePin::Flags::HIDE_LABEL);
-
-        rv->set_target_class(p_method.return_val.class_name);
-        rv->set_type(p_method.return_val.type);
+        Ref<OScriptNodePin> return_value = create_output_pin(PT_Data, "return_value", p_method.return_val);
+        return_value->set_flag(return_value->get_type() == Variant::OBJECT ? OScriptNodePin::Flags::SHOW_LABEL : OScriptNodePin::Flags::HIDE_LABEL);
     }
 
-    if (_chainable && _chain)
+    if (_chainable && _chain && target.is_valid())
     {
-        Ref<OScriptNodePin> chain = create_pin(PD_Output, "return_target", Variant::OBJECT);
-        chain->set_flags(OScriptNodePin::Flags::DATA);
-        chain->set_label("Target");
-        chain->set_target_class(find_pin("target", PD_Input)->get_target_class());
+        const String target_class = target->get_target_class();
+        create_output_pin(PT_Data, PropertyUtils::create_object("return_target", target_class))->set_label("Target");
     }
-}
-
-Ref<OScriptNodePin> OScriptNodeCallFunction::_create_pin_for_property(const PropertyInfo& p_property, EPinDirection p_direction, const String& p_name, BitField<OScriptNodePin::Flags> p_flags)
-{
-    Ref<OScriptNodePin> pin = create_pin(p_direction, p_name, p_property.type);
-    if (pin.is_valid())
-    {
-        BitField<OScriptNodePin::Flags> flags(p_flags);
-        if (p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
-        {
-            flags.set_flag(OScriptNodePin::Flags::ENUM);
-            pin->set_target_class(p_property.class_name);
-            pin->set_type(p_property.type);
-        }
-        else if (p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
-        {
-            flags.set_flag(OScriptNodePin::Flags::BITFIELD);
-            pin->set_target_class(p_property.class_name);
-            pin->set_type(p_property.type);
-        }
-        pin->set_flags(flags);
-    }
-    return pin;
 }
 
 bool OScriptNodeCallFunction::_has_execution_pins(const MethodInfo& p_method) const

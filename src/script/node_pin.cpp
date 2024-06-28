@@ -52,9 +52,15 @@ bool OScriptNodePin::_load(const Dictionary& p_data)
     if (!p_data.has("pin_name") || !p_data.has("type") || !p_data.has("dir"))
         return false;
 
-    _pin_name = p_data["pin_name"];
-    _type = VariantUtils::to_type(p_data["type"]);
+    _property.name = p_data["pin_name"];
+    _property.type = VariantUtils::to_type(p_data["type"]);
     _direction = EPinDirection(int(p_data["dir"]));
+
+    if (p_data.has("hint"))
+        _property.hint = p_data["hint"];
+
+    if (p_data.has("hint_string"))
+        _property.hint_string = p_data["hint_string"];
 
     if (p_data.has("flags"))
         _flags = int(p_data["flags"]);
@@ -71,7 +77,7 @@ bool OScriptNodePin::_load(const Dictionary& p_data)
     if (p_data.has("gdv"))
         _generated_default_value = p_data["gdv"];
     else
-        _generated_default_value = VariantUtils::make_default(_type);
+        _generated_default_value = VariantUtils::make_default(_property.type);
 
     return true;
 }
@@ -79,9 +85,15 @@ bool OScriptNodePin::_load(const Dictionary& p_data)
 Dictionary OScriptNodePin::_save()
 {
     Dictionary data;
-    data["pin_name"] = _pin_name;
-    data["type"] = _type;
+    data["pin_name"] = _property.name;
+    data["type"] = _property.type;
     data["dir"] = _direction;
+
+    if (_property.hint != PROPERTY_HINT_NONE)
+        data["hint"] = _property.hint;
+
+    if (_property.usage != PROPERTY_USAGE_DEFAULT)
+        data["hint_string"] = _property.hint_string;
 
     if (_flags > 0)
         data["flags"] = _flags;
@@ -97,7 +109,7 @@ Dictionary OScriptNodePin::_save()
 
     // This fixes any potential data issues and guarantees that a generated default value exists.
     if (_generated_default_value.get_type() == Variant::NIL)
-        _generated_default_value = VariantUtils::make_default(_type);
+        _generated_default_value = VariantUtils::make_default(_property.type);
 
     data["gdv"] = _generated_default_value;
 
@@ -136,7 +148,7 @@ Ref<OScriptNodePin> OScriptNodePin::create(OScriptNode* p_owning_node)
 {
     Ref<OScriptNodePin> pin(memnew(OScriptNodePin));
     pin->_owning_node = p_owning_node;
-    pin->_type = Variant::NIL;
+    pin->_property.type = Variant::NIL;
     return pin;
 }
 
@@ -173,28 +185,28 @@ int32_t OScriptNodePin::get_pin_index() const
 
 StringName OScriptNodePin::get_pin_name() const
 {
-    return _pin_name;
+    return _property.name;
 }
 
 void OScriptNodePin::set_pin_name(const StringName& p_pin_name)
 {
-    if (!_pin_name.match(p_pin_name))
+    if(!_property.name.match(p_pin_name))
     {
-        _pin_name = p_pin_name;
+        _property.name = p_pin_name;
         emit_changed();
     }
 }
 
 Variant::Type OScriptNodePin::get_type() const
 {
-    return _type;
+    return _property.type;
 }
 
 void OScriptNodePin::set_type(Variant::Type p_type)
 {
-    if (_type != p_type)
+    if (_property.type != p_type)
     {
-        _type = p_type;
+        _property.type = p_type;
 
         if (_set_type_resets_default)
             reset_default_value();
@@ -205,10 +217,10 @@ void OScriptNodePin::set_type(Variant::Type p_type)
 
 String OScriptNodePin::get_pin_type_name() const
 {
-    if (_type == Variant::NIL)
+    if (_property.type == Variant::NIL)
         return "Variant";
 
-    return Variant::get_type_name(_type);
+    return Variant::get_type_name(_property.type);
 }
 
 StringName OScriptNodePin::get_target_class() const
@@ -222,8 +234,9 @@ void OScriptNodePin::set_target_class(const StringName& p_target_class)
     {
         _target_class = p_target_class;
 
+        // todo: not sure this is accurate
         if (!_target_class.is_empty())
-            _type = Variant::OBJECT;
+            _property.type = Variant::OBJECT;
 
         if (_set_type_resets_default)
             reset_default_value();
@@ -258,7 +271,7 @@ void OScriptNodePin::set_default_value(const Variant& p_default_value)
 void OScriptNodePin::reset_default_value()
 {
     _default_value = Variant();
-    _generated_default_value = _target_class.is_empty() ? VariantUtils::make_default(_type) : Variant();
+    _generated_default_value = _target_class.is_empty() ? VariantUtils::make_default(_property.type) : Variant();
 }
 
 Variant OScriptNodePin::get_generated_default_value() const
@@ -302,16 +315,66 @@ EPinDirection OScriptNodePin::get_complimentary_direction() const
     return _direction == PD_Input ? PD_Output : PD_Input;
 }
 
-BitField<OScriptNodePin::Flags> OScriptNodePin::get_flags() const
+PackedStringArray OScriptNodePin::get_flags() const
 {
-    return _flags;
+    PackedStringArray flags;
+
+    if (_flags.has_flag(DATA))
+        flags.append("Data");
+    if (_flags.has_flag(EXECUTION))
+        flags.append("Execution");
+    if (_flags.has_flag(IGNORE_DEFAULT))
+        flags.append("IgnoreDefault");
+    if (_flags.has_flag(READ_ONLY))
+        flags.append("ReadOnly");
+    if (_flags.has_flag(HIDDEN))
+        flags.append("Hidden");
+    if (_flags.has_flag(ORPHANED))
+        flags.append("Orphaned");
+    if (_flags.has_flag(ADVANCED))
+        flags.append("Advanced");
+    if (_flags.has_flag(NO_CONNECTION))
+        flags.append("NoConnection");
+    if (_flags.has_flag(SHOW_LABEL))
+        flags.append("ShowLabel");
+    if (_flags.has_flag(HIDE_LABEL))
+        flags.append("HideLabel");
+    if (_flags.has_flag(NO_CAPITALIZE))
+        flags.append("NoCapitalize");
+    if (_flags.has_flag(NO_AUTOWIRE))
+        flags.append("NoAutowire");
+    if (_flags.has_flag(CONST))
+        flags.append("Const");
+    if (_flags.has_flag(REFERENCE))
+        flags.append("Reference");
+    if (_flags.has_flag(OBJECT))
+        flags.append("Object");
+    if (_flags.has_flag(FILE))
+        flags.append("File");
+    if (_flags.has_flag(MULTILINE))
+        flags.append("Multiline");
+    if (_flags.has_flag(ENUM))
+        flags.append("Enum");
+    if (_flags.has_flag(BITFIELD))
+        flags.append("Bitfield");
+
+    return flags;
 }
 
-void OScriptNodePin::set_flags(BitField<OScriptNodePin::Flags> p_flags)
+void OScriptNodePin::set_flag(Flags p_flag)
 {
-    if (_flags != p_flags)
+    if (!_flags.has_flag(p_flag))
     {
-        _flags = p_flags;
+        _flags.set_flag(p_flag);
+        emit_changed();
+    }
+}
+
+void OScriptNodePin::clear_flag(Flags p_flag)
+{
+    if (_flags.has_flag(p_flag))
+    {
+        _flags = _flags & ~p_flag;
         emit_changed();
     }
 }
@@ -326,7 +389,85 @@ void OScriptNodePin::set_label(const String& p_label)
     if (_label != p_label)
     {
         _label = p_label;
+
+        // To simplify the logic, setting a label for Data-type pins shows automatically.
+        // For execution pins, this requires setting the SHOW_LABEL and the label text.
+        // This allows simply calling set_label to have the label shown for execution pins.
+        // todo: can this be done irrespective of pin types?
+        if (_flags.has_flag(EXECUTION) && !_flags.has_flag(SHOW_LABEL))
+            _flags.set_flag(SHOW_LABEL);
+
         emit_changed();
+    }
+}
+
+String OScriptNodePin::get_file_types() const
+{
+    if (_property.hint == PROPERTY_HINT_FILE || _flags.has_flag(FILE))
+        return _property.hint_string;
+    return "";
+}
+
+void OScriptNodePin::set_property(const PropertyInfo& p_property)
+{
+    if (_property.name.is_empty() && !p_property.name.is_empty())
+        _property.name = p_property.name;
+
+    _property.type = p_property.type;
+
+    // todo: how to handle inconsistency with dynamic enum/bitfield hints encoded here?
+    // When other languages such as GDScript define a bitfield or enum hint, we encode the hint string
+    // value-set here as part of the property; however, if the data set eventually changes, there may
+    // be an inconsistency.
+    _property.hint = p_property.hint;
+    _property.hint_string = p_property.hint_string;
+
+    // There are two ways that ENUM properties are created: hints and usage flags
+    //
+    // In the case of a property hint, this is typically used when defining enums in GDScript using the
+    // script language's annotations. In this case, the enum details are encoded in the hint string
+    // that defines the various elements.
+    //
+    // In the case of usage flags, this instead refers to a specific encoded class/enum tuple that will
+    // be stored in the class_name property. This is set as the _target_class property and will then be
+    // dynamically looked up by the plug-in extension database system.
+    //
+    if (p_property.hint == PROPERTY_HINT_ENUM || p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
+    {
+        _flags.set_flag(ENUM);
+        if (p_property.usage & PROPERTY_USAGE_CLASS_IS_ENUM)
+            _target_class = p_property.class_name;
+    }
+
+    // There are also two wys that BITFIELD properties are created: hints and flags
+    //
+    // In the case of property hints, this is typically used when defining bitfields in GDScript using the
+    // script language's annotations. In this case, the bitfield details are encoded in the hint string
+    // that defines the various elements.
+    //
+    // In the case of usage flags, this instead refers to a specific encoded class/bitfield tuple that will
+    // be stored in the class_name property. This is set as the _target_class property and will then be
+    // dynamically looked up by the plug-in extension database subsystem.
+    //
+    if (p_property.hint == PROPERTY_HINT_FLAGS || p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
+    {
+        _flags.set_flag(BITFIELD);
+        if (p_property.usage & PROPERTY_USAGE_CLASS_IS_BITFIELD)
+            _target_class = p_property.class_name;
+    }
+
+    if (p_property.hint == PROPERTY_HINT_FILE)
+        _flags.set_flag(FILE);
+
+    if (p_property.hint == PROPERTY_HINT_MULTILINE_TEXT)
+        _flags.set_flag(MULTILINE);
+
+    if (_target_class.is_empty() && !p_property.class_name.is_empty())
+    {
+        // If no target_class has been set up to this point, we need to check whether there is any data
+        // that should be set in this field based on resource or object types.
+        if (p_property.hint == PROPERTY_HINT_RESOURCE_TYPE || p_property.type == Variant::OBJECT)
+            _target_class = p_property.class_name;
     }
 }
 
@@ -345,19 +486,19 @@ bool OScriptNodePin::can_accept(const Ref<OScriptNodePin>& p_pin) const
         return false;
 
     // If the types match, short-circuit
-    if (_type == p_pin->get_type())
+    if (_property.type == p_pin->get_type())
         return true;
 
     // Coercion is allowed here
-    if (_type == Variant::STRING || p_pin->get_type() == Variant::STRING)
+    if (_property.type == Variant::STRING || p_pin->get_type() == Variant::STRING)
         return true;
 
     // Numeric conversions allows
-    if (_type == Variant::INT || _type == Variant::FLOAT)
+    if (_property.type == Variant::INT || _property.type == Variant::FLOAT)
         if (p_pin->get_type() == Variant::INT || p_pin->get_type() == Variant::FLOAT)
             return true;
 
-    if (_type == Variant::NIL || p_pin->get_type() == Variant::NIL)
+    if (_property.type == Variant::NIL || p_pin->get_type() == Variant::NIL)
         return true;
 
     return false;
@@ -513,7 +654,27 @@ Vector<Ref<OScriptNodePin>> OScriptNodePin::get_connections() const
     return get_owning_node()->get_orchestration()->get_connections(this);
 }
 
+bool OScriptNodePin::is_label_visible() const
+{
+    if (_flags.has_flag(HIDE_LABEL) || _flags.has_flag(HIDDEN))
+        return false;
+
+    if (_flags.has_flag(EXECUTION) && !_flags.has_flag(SHOW_LABEL))
+        return false;
+
+    // Data pins that are not explicitly hidden or that don't hide labels are visible
+    return true;
+}
+
 Ref<OScriptTargetObject> OScriptNodePin::resolve_target()
 {
     return get_owning_node()->resolve_target(this);
+}
+
+OScriptNodePin::OScriptNodePin()
+{
+    // Addresses bug in Godot 4.2 godot-cpp
+    _property.type = Variant::NIL;
+    _property.hint = PROPERTY_HINT_NONE;
+    _property.usage = PROPERTY_USAGE_DEFAULT;
 }

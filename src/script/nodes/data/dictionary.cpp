@@ -80,16 +80,17 @@ void OScriptNodeMakeDictionary::allocate_default_pins()
     {
         const String element_prefix = _get_pin_name_given_index(i);
 
-        Ref<OScriptNodePin> key = create_pin(PD_Input, vformat("%s_key", element_prefix), Variant::NIL);
-        key->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+        Ref<OScriptNodePin> key = create_input_pin(PT_Data, vformat("%s_key", element_prefix), Variant::NIL);
+        key->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
         key->set_label(vformat("Key %d", i));
 
-        Ref<OScriptNodePin> value = create_pin(PD_Input, vformat("%s_value", element_prefix), Variant::NIL);
-        value->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+        Ref<OScriptNodePin> value = create_input_pin(PT_Data, vformat("%s_value", element_prefix), Variant::NIL);
+        value->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
         value->set_label(vformat("Value %d", i));
     }
 
-    create_pin(PD_Output, "dictionary", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
+    create_output_pin(PT_Data, "dictionary", Variant::DICTIONARY);
+
     super::allocate_default_pins();
 }
 
@@ -169,15 +170,15 @@ void OScriptNodeDictionarySet::post_initialize()
 
 void OScriptNodeDictionarySet::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "target", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "key", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "value", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, "target", Variant::DICTIONARY);
+    create_input_pin(PT_Data, "key", Variant::NIL);
+    create_input_pin(PT_Data, "value", Variant::NIL);
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Output, "dictionary", Variant::DICTIONARY)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "replaced", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "old_value", Variant::NIL)->set_flags(OScriptNodePin::Flags::DATA);
+    create_output_pin(PT_Execution, "ExecOut");
+    create_output_pin(PT_Data, "dictionary", Variant::DICTIONARY);
+    create_output_pin(PT_Data, "replaced", Variant::BOOL);
+    create_output_pin(PT_Data, "old_value", Variant::NIL);
 
     super::allocate_default_pins();
 }

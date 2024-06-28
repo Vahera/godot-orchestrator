@@ -225,20 +225,14 @@ void OScriptNodeEmitSignal::post_placed_new_node()
 
 void OScriptNodeEmitSignal::allocate_default_pins()
 {
-    // Single input exec pin
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-
-    // Create output exec pin
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_output_pin(PT_Execution, "ExecOut");
 
     if (_signal.is_valid())
     {
         const MethodInfo& mi = _signal->get_method_info();
         for (const PropertyInfo& pi : mi.arguments)
-        {
-            Ref<OScriptNodePin> arg = create_pin(PD_Input, pi.name, pi.type);
-            arg->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
-        }
+            create_input_pin(PT_Data, pi.name, pi)->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     }
 
     super::allocate_default_pins();

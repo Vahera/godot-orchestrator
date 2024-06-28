@@ -16,6 +16,8 @@
 //
 #include "scene_tree.h"
 
+#include "common/property_utils.h"
+
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/scene_tree.hpp>
 
@@ -52,9 +54,8 @@ public:
 
 void OScriptNodeSceneTree::allocate_default_pins()
 {
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, "scene_tree", Variant::OBJECT);
-    pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::OBJECT);
-    pin->set_target_class("SceneTree");
+    Ref<OScriptNodePin> pin = create_output_pin(PT_Data, PropertyUtils::create_object("scene_tree", SceneTree::get_class_static()));
+    pin->set_flag(OScriptNodePin::Flags::OBJECT);
 
     super::allocate_default_pins();
 }

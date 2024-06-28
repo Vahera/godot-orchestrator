@@ -96,6 +96,8 @@ private:
     TypedArray<Dictionary> _get_pin_data() const;
     void _set_pin_data(const TypedArray<Dictionary>& p_pin_data);
 
+    Ref<OScriptNodePin> _create_pin_internal(EPinDirection p_direction, EPinType p_type, const String& p_name, const PropertyInfo& p_property, const Variant& p_default_value);
+
 protected:
     // Registration
     static void register_custom_orchestrator_data_to_otdb() { }
@@ -303,6 +305,26 @@ public:
     /// @return the Godot help topic
     virtual String get_help_topic() const;
 
+    /// Create an input pin for this node
+    /// @param p_pin_type the pin type, i.e. execution or data
+    /// @param p_name the pin name, cannot be empty
+    /// @param p_property the property details for the pin
+    /// @param p_default_value the default value, defaults to null
+    /// @return the newly created pin reference
+    Ref<OScriptNodePin> create_input_pin(EPinType p_pin_type, const String& p_name, const PropertyInfo& p_property, const Variant& p_default_value = Variant());
+    Ref<OScriptNodePin> create_input_pin(EPinType p_pin_type, const String& p_name, Variant::Type p_type = Variant::NIL, const Variant& p_default_value = Variant());
+    Ref<OScriptNodePin> create_input_pin(EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value = Variant());
+
+    /// Create an output pin for this node
+    /// @param p_pin_type the pin type, i.e. execution or data
+    /// @param p_name the pin name, cannot be empty
+    /// @param p_property the property details for the pin
+    /// @param p_default_value the default value, defaults to null
+    /// @return the newly created pin reference
+    Ref<OScriptNodePin> create_output_pin(EPinType p_pin_type, const String& p_name, const PropertyInfo& p_property, const Variant& p_default_value = Variant());
+    Ref<OScriptNodePin> create_output_pin(EPinType p_pin_type, const String& p_name, Variant::Type p_type = Variant::NIL, const Variant& p_default_value = Variant());
+    Ref<OScriptNodePin> create_output_pin(EPinType p_pin_type, const PropertyInfo& p_property, const Variant& p_default_value = Variant());
+
     /// Create a pin associated with this node.
     /// @param p_direction the pin direction, input or output
     /// @param p_name the pin name
@@ -310,6 +332,7 @@ public:
     /// @param p_default_value the default value, defaults to null
     /// @param p_index the slot index
     /// @return the newly created pin reference
+    /// @deprecated deprecated, use create_input_pin or create_output_pin instead
     Ref<OScriptNodePin> create_pin(EPinDirection p_direction, const String& p_name, Variant::Type p_type = Variant::NIL,
                                    const Variant& p_default_value = Variant(), int p_index = -1);
 

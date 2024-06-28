@@ -17,7 +17,6 @@
 #include "decompose.h"
 
 #include "api/extension_db.h"
-#include "common/dictionary_utils.h"
 #include "common/string_utils.h"
 #include "common/variant_utils.h"
 
@@ -100,14 +99,14 @@ void OScriptNodeDecompose::post_placed_new_node()
 void OScriptNodeDecompose::allocate_default_pins()
 {
     // Set the pin with value that will be broken
-    create_pin(PD_Input, "value", _type)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::IGNORE_DEFAULT);
+    create_input_pin(PT_Data, "value", _type)->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
 
     Variant value = VariantUtils::make_default(_type);
     const Array &components = _type_components[_type];
     for (int i = 0; i < components.size(); i++)
     {
         const Variant bit = value.get(components[i]);
-        create_pin(PD_Output, components[i], bit.get_type())->set_flags(OScriptNodePin::Flags::DATA);
+        create_output_pin(PT_Data, components[i], bit.get_type());
     }
 }
 

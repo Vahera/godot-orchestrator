@@ -48,10 +48,9 @@ public:
 protected:
     CallMode _call_mode;
     StringName _base_type;
-    StringName _property_name;
     NodePath _node_path;
-    Variant::Type _property_type;
-    String _property_hint;
+    PropertyInfo _property;
+    bool _has_property{ false };
 
     //~ Begin Wrapped Interface
     void _get_property_list(List<PropertyInfo>* r_list) const;

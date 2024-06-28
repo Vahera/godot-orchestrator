@@ -34,9 +34,12 @@ public:
 
 void OScriptNodeDialogueChoice::allocate_default_pins()
 {
-    create_pin(PD_Input, "text", Variant::STRING)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::MULTILINE);
-    create_pin(PD_Input, "visible", Variant::BOOL)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "choice", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Data, "text", PropertyInfo(Variant::STRING, "text", PROPERTY_HINT_MULTILINE_TEXT));
+    create_input_pin(PT_Data, "visible", Variant::BOOL);
+
+    // todo: this shows some odd pin choices, we should probably consider how to address this
+    create_output_pin(PT_Data, "choice",
+        PropertyInfo(Variant::OBJECT, "choice", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT, get_class_static()));
 }
 
 String OScriptNodeDialogueChoice::get_tooltip_text() const

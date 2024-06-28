@@ -16,6 +16,7 @@
 //
 #include "type_cast.h"
 
+#include "common/dictionary_utils.h"
 #include "common/string_utils.h"
 
 class OScriptNodeTypeCastInstance : public OScriptNodeInstance
@@ -122,18 +123,24 @@ void OScriptNodeTypeCast::post_node_autowired(const Ref<OScriptNode>& p_node, EP
 
 void OScriptNodeTypeCast::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "instance", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::OBJECT);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, "instance", Variant::OBJECT)->set_flag(OScriptNodePin::Flags::OBJECT);
 
-    Ref<OScriptNodePin> yes = create_pin(PD_Output, "yes");
-    yes->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    create_output_pin(PT_Execution, "yes")->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
+    create_output_pin(PT_Execution, "no")->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
 
-    Ref<OScriptNodePin> no = create_pin(PD_Output, "no");
-    no->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    PropertyInfo pi = PropertyInfo(Variant::OBJECT, "output");
+    pi.class_name = _target_type;
+    if (ClassDB::is_parent_class(_target_type, "Resource"))
+    {
+        pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
+        pi.hint_string = _target_type;
+    }
 
-    Ref<OScriptNodePin> output = create_pin(PD_Output, "output", Variant::OBJECT);
-    output->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::OBJECT | OScriptNodePin::Flags::NO_CAPITALIZE);
-    output->set_label("as " + StringUtils::default_if_empty(_target_type, "Object"));
+    Ref<OScriptNodePin> output = create_output_pin(PT_Data, "output", pi);
+    output->set_flag(OScriptNodePin::Flags::OBJECT); // todo: can this be deduced from Variant::OBJECT?
+    output->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
+    output->set_label(vformat("as %s", StringUtils::default_if_empty(_target_type, "Object")));
 }
 
 String OScriptNodeTypeCast::get_tooltip_text() const

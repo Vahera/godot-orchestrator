@@ -74,11 +74,12 @@ void OScriptNodeSelect::post_initialize()
 
 void OScriptNodeSelect::allocate_default_pins()
 {
+    // todo: support select of more than basic types
     const Variant::Type type = VariantUtils::to_type(_type);
-    create_pin(PD_Input, "a", type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "b", type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "pick_a", Variant::BOOL, false)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "result", type)->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Data, "a", type);
+    create_input_pin(PT_Data, "b", type);
+    create_input_pin(PT_Data, "pick_a", Variant::BOOL, false);
+    create_output_pin(PT_Data, "result", type);
 
     super::allocate_default_pins();
 }

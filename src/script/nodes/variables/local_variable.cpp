@@ -118,7 +118,9 @@ void OScriptNodeLocalVariable::post_initialize()
 
 void OScriptNodeLocalVariable::allocate_default_pins()
 {
-    create_pin(PD_Output, "variable", _type)->set_flags(OScriptNodePin::Flags::DATA);
+    // todo: do we want local variables to only store basic types?
+    create_output_pin(PT_Data, "variable", _type);
+
     super::allocate_default_pins();
 }
 
@@ -176,10 +178,11 @@ void OScriptNodeAssignLocalVariable::post_initialize()
 
 void OScriptNodeAssignLocalVariable::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "variable", _type)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::IGNORE_DEFAULT);
-    create_pin(PD_Input, "value", _type)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    // todo: do we want to encode more type detail here?
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, "variable", _type)->set_flag(OScriptNodePin::Flags::IGNORE_DEFAULT);
+    create_input_pin(PT_Data, "value", _type);
+    create_output_pin(PT_Execution, "ExecOut");
 
     super::allocate_default_pins();
 }

@@ -159,8 +159,8 @@ void OScriptNodeGlobalConstant::post_initialize()
 
 void OScriptNodeGlobalConstant::allocate_default_pins()
 {
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", Variant::INT);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> constant = create_output_pin(PT_Data, "constant", Variant::INT);
+    constant->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     constant->set_label(_constant_name);
     super::allocate_default_pins();
 }
@@ -250,8 +250,8 @@ bool OScriptNodeMathConstant::_set(const StringName& p_name, const Variant& p_va
 
 void OScriptNodeMathConstant::allocate_default_pins()
 {
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", Variant::FLOAT);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> constant = create_output_pin(PT_Data, "constant", Variant::FLOAT);
+    constant->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     constant->set_label(_constant_name);
     super::allocate_default_pins();
 }
@@ -268,6 +268,7 @@ String OScriptNodeMathConstant::get_node_title() const
 
 String OScriptNodeMathConstant::get_help_topic() const
 {
+    // One, PI/2, LN(2), E, Sqrt1/2, Sqrt2
     #if GODOT_VERSION >= 0x040300
     // todo: some math constants are not exposed to the documentation, i.e. "One"
     //       check if these can be exposed via OScriptLanguage instead?
@@ -384,8 +385,8 @@ void OScriptNodeTypeConstant::allocate_default_pins()
     if (!_constant_name.is_empty())
         label += "::" + _constant_name;
 
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", _type);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> constant = create_output_pin(PT_Data, "constant", _type);
+    constant->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     constant->set_label(label);
     super::allocate_default_pins();
 }
@@ -497,8 +498,8 @@ void OScriptNodeClassConstantBase::allocate_default_pins()
     if (!_constant_name.is_empty())
         label += "::" + _constant_name;
 
-    Ref<OScriptNodePin> constant = create_pin(PD_Output, "constant", Variant::INT);
-    constant->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> constant = create_output_pin(PT_Data, "constant", Variant::INT);
+    constant->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     constant->set_label(label);
     super::allocate_default_pins();
 }
