@@ -16,6 +16,7 @@
 //
 #include "await_signal.h"
 
+#include "common/property_utils.h"
 #include "script/vm/script_state.h"
 
 class OScriptNodeAwaitSignalInstance : public OScriptNodeInstance
@@ -68,10 +69,11 @@ void OScriptNodeAwaitSignal::post_placed_new_node()
 
 void OScriptNodeAwaitSignal::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "target", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Input, "signal_name", Variant::STRING)->set_flags(OScriptNodePin::Flags::DATA);
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, PropertyUtils::create_object("target", Object::get_class_static()));
+    create_input_pin(PT_Data, PropertyInfo(Variant::STRING, "signal_name"));
+    create_output_pin(PT_Execution, "ExecOut");
+
     super::allocate_default_pins();
 }
 

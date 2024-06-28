@@ -71,6 +71,25 @@ bool OScriptNodeAutoload::_set(const StringName& p_name, const Variant& p_value)
     return false;
 }
 
+Variant OScriptNodeAutoload::_get_autoload_instance() const
+{
+    Variant value = OScriptLanguage::get_singleton()->get_any_global_constant(_autoload);
+    if (value && value.get_type() == Variant::OBJECT)
+        return value;
+    return Variant();
+}
+
+String OScriptNodeAutoload::_get_autoload_base_type() const
+{
+    const Variant instance = _get_autoload_instance();
+    if (instance)
+    {
+        const Object* autoload = Object::cast_to<Object>(instance);
+        return autoload->get_class();
+    }
+    return String();
+}
+
 void OScriptNodeAutoload::allocate_default_pins()
 {
     // Always default to first registered autoload
@@ -81,8 +100,11 @@ void OScriptNodeAutoload::allocate_default_pins()
             _autoload = values[0];
     }
 
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, "autoload", Variant::OBJECT);
-    pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    // Functions and properties show up as extensions under the base Autoload class type, i.e. Node.
+    // When a function is prefixed with "_", it won't be accessible.
+    // When a variable is not exported, it won't be accessible.
+    Ref<OScriptNodePin> pin = create_output_pin(PT_Data, "autoload", Variant::OBJECT);
+    pin->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     pin->set_label(_autoload);
 
     super::allocate_default_pins();
@@ -105,22 +127,16 @@ String OScriptNodeAutoload::get_icon() const
 
 StringName OScriptNodeAutoload::resolve_type_class(const Ref<OScriptNodePin>& p_pin) const
 {
-    Variant value = OScriptLanguage::get_singleton()->get_any_global_constant(_autoload);
-    if (value && value.get_type() == Variant::OBJECT)
-    {
-        Object* autoload = Object::cast_to<Object>(value);
-        return autoload->get_class();
-    }
-    return _autoload;
+    return StringUtils::default_if_empty(_get_autoload_base_type(), _autoload);
 }
 
 Ref<OScriptTargetObject> OScriptNodeAutoload::resolve_target(const Ref<OScriptNodePin>& p_pin) const
 {
     if (p_pin->is_output() && p_pin->get_pin_name().match("autoload"))
     {
-        Variant value = OScriptLanguage::get_singleton()->get_any_global_constant(_autoload);
-        if (value && value.get_type() == Variant::OBJECT)
-            return memnew(OScriptTargetObject(value, false));
+        Variant instance = _get_autoload_instance();
+        if (instance)
+            return memnew(OScriptTargetObject(instance, false));
     }
     return super::resolve_target(p_pin);
 }
@@ -145,12 +161,9 @@ void OScriptNodeAutoload::validate_node_during_build(BuildLog& p_log) const
 {
     if (OScriptLanguage::get_singleton()->has_any_global_constant(_autoload))
     {
-        Variant autoload = OScriptLanguage::get_singleton()->get_any_global_constant(_autoload);
-        if (autoload && autoload.get_type() == Variant::OBJECT)
-        {
-            if (Object::cast_to<Node>(autoload))
-                return;
-        }
+        Variant instance = _get_autoload_instance();
+        if (instance && Object::cast_to<Node>(instance))
+            return;
     }
 
     p_log.error(vformat("No autoload registered with name '%s' in the project settings.", _autoload));

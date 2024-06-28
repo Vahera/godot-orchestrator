@@ -61,8 +61,9 @@ void OScriptNodeCoercion::post_placed_new_node()
 
 void OScriptNodeCoercion::allocate_default_pins()
 {
-    create_pin(PD_Input, "input", _left)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::HIDE_LABEL);
-    create_pin(PD_Output, "output", _right)->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::HIDE_LABEL);
+    // todo: this should probably be more than just Variant::Type, i.e. get type details from pin as property
+    create_input_pin(PT_Data, "input", _left)->set_flag(OScriptNodePin::Flags::HIDE_LABEL);
+    create_output_pin(PT_Data, "output", _right)->set_flag(OScriptNodePin::Flags::HIDE_LABEL);
 }
 
 String OScriptNodeCoercion::get_tooltip_text() const

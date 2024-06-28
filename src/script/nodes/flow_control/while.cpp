@@ -39,14 +39,14 @@ public:
 
 void OScriptNodeWhile::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, "ExecIn");
-    exec_in->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    Ref<OScriptNodePin> exec_in = create_input_pin(PT_Execution, "ExecIn");
+    exec_in->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
     exec_in->set_label("while [condition]");
 
-    create_pin(PD_Input, "condition", Variant::BOOL, _condition)->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Data, "condition", Variant::BOOL, _condition);
 
-    create_pin(PD_Output, "repeat")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    create_pin(PD_Output, "done")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    create_output_pin(PT_Execution, "repeat")->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
+    create_output_pin(PT_Execution, "done")->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
 }
 
 String OScriptNodeWhile::get_tooltip_text() const

@@ -34,6 +34,14 @@ protected:
     bool _set(const StringName &p_name, const Variant &p_value);
     //~ End Wrapped Interface
 
+    /// Get the instance of the autoload
+    /// @return the autoload instance, wrapped as a variant
+    Variant _get_autoload_instance() const;
+
+    /// Get the base type for the autoload
+    /// @return the autoload instance's base type
+    String _get_autoload_base_type() const;
+
 public:
     //~ Begin OScriptNode Interface
     void allocate_default_pins() override;

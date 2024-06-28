@@ -162,22 +162,21 @@ void OScriptNodeSwitch::_unlink_pins(int p_new_cases)
 
 void OScriptNodeSwitch::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, "ExecIn");
-    exec_in->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    Ref<OScriptNodePin> exec_in = create_input_pin(PT_Execution, "ExecIn");
+    exec_in->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
     exec_in->set_label("value_is:");
 
-    Ref<OScriptNodePin> input = create_pin(PD_Input, "value", Variant::NIL);
-    input->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Data, "value", Variant::NIL);
 
     for (int i = 0; i < _cases; i++)
-        create_pin(PD_Input, _get_pin_name_given_index(i))->set_flags(OScriptNodePin::Flags::DATA);
+        create_input_pin(PT_Data, _get_pin_name_given_index(i));
 
     // Push output ports down to align with input cases.
-    create_pin(PD_Output, "Done")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
-    create_pin(PD_Output, "default")->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    create_output_pin(PT_Execution, "Done")->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
+    create_output_pin(PT_Execution, "default")->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
 
     for (int i = 0; i < _cases; i++)
-        create_pin(PD_Output, _get_pin_name_given_index(i) + "_out")->set_flags(OScriptNodePin::Flags::EXECUTION);
+        create_output_pin(PT_Execution, _get_pin_name_given_index(i) + "_out");
 }
 
 String OScriptNodeSwitch::get_tooltip_text() const
@@ -344,20 +343,21 @@ void OScriptNodeSwitchEditablePin::_recompute_pin_names(int p_index)
 
 void OScriptNodeSwitchEditablePin::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
-    create_pin(PD_Input, "value", _get_input_pin_type())->set_flags(OScriptNodePin::Flags::DATA);
+    create_input_pin(PT_Execution, "ExecIn");
+    create_input_pin(PT_Data, "value", _get_input_pin_type());
 
     for (int i = 0; i < _pin_names.size(); i++)
     {
-        Ref<OScriptNodePin> pin = create_pin(PD_Output, _get_pin_name_given_index(i));
-        pin->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL | OScriptNodePin::NO_CAPITALIZE);
+        Ref<OScriptNodePin> pin = create_output_pin(PT_Execution, _get_pin_name_given_index(i));
+        pin->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
+        pin->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
         pin->set_label(_pin_names[i]);
     }
 
     if (_has_default_value)
     {
-        Ref<OScriptNodePin> default_value = create_pin(PD_Output, "default");
-        default_value->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+        Ref<OScriptNodePin> default_value = create_output_pin(PT_Execution, "default");
+        default_value->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
         default_value->set_label("Default");
     }
 }
@@ -504,7 +504,7 @@ void OScriptNodeSwitchEnum::post_initialize()
     Ref<OScriptNodePin> pin = find_pin("value", PD_Input);
     if (pin.is_valid())
     {
-        if (pin->get_flags().has_flag(OScriptNodePin::Flags::ENUM))
+        if (pin->is_enum())
             _enum_name = pin->get_target_class();
     }
     super::post_initialize();
@@ -517,7 +517,7 @@ void OScriptNodeSwitchEnum::post_placed_new_node()
         Ref<OScriptNodePin> pin = find_pin("value", PD_Input);
         if (pin.is_valid())
         {
-            pin->set_flags(pin->get_flags() | OScriptNodePin::Flags::ENUM);
+            pin->set_flag(OScriptNodePin::Flags::ENUM);
             pin->set_target_class(_enum_name);
             pin->set_type(Variant::INT);
         }
@@ -527,12 +527,13 @@ void OScriptNodeSwitchEnum::post_placed_new_node()
 
 void OScriptNodeSwitchEnum::allocate_default_pins()
 {
-    Ref<OScriptNodePin> exec_in = create_pin(PD_Input, "ExecIn");
-    exec_in->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL);
+    Ref<OScriptNodePin> exec_in = create_input_pin(PT_Execution, "ExecIn");
+    exec_in->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
     exec_in->set_label("value_is:");
 
-    Ref<OScriptNodePin> input = create_pin(PD_Input, "value", Variant::NIL);
-    input->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::ENUM);
+    // todo: this should be encoded better
+    Ref<OScriptNodePin> input = create_input_pin(PT_Data, "value", Variant::NIL);
+    input->set_flag(OScriptNodePin::Flags::ENUM);
     input->set_target_class(_enum_name);
     input->set_type(Variant::INT);
 
@@ -541,8 +542,9 @@ void OScriptNodeSwitchEnum::allocate_default_pins()
     {
         if (!ev.friendly_name.is_empty())
         {
-            Ref<OScriptNodePin> out = create_pin(PD_Output, "case_" + itos(ev.value) + "_out");
-            out->set_flags(OScriptNodePin::Flags::EXECUTION | OScriptNodePin::Flags::SHOW_LABEL | OScriptNodePin::NO_CAPITALIZE);
+            Ref<OScriptNodePin> out = create_output_pin(PT_Execution, "case_" + itos(ev.value) + "_out");
+            out->set_flag(OScriptNodePin::Flags::SHOW_LABEL);
+            out->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
             out->set_label(ev.friendly_name);
             out->set_generated_default_value(ev.value);
         }

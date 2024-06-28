@@ -47,19 +47,9 @@ public:
 
 void OScriptNodeVariableGet::allocate_default_pins()
 {
-    Ref<OScriptNodePin> value = create_pin(PD_Output, "value", _variable->get_variable_type());
-    value->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> value = create_output_pin(PT_Data, "value", _variable->get_info());
+    value->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     value->set_label(_variable_name);
-
-    const PropertyInfo& pi = _variable->get_info();
-
-    if (_variable->get_variable_type() == Variant::OBJECT)
-    {
-        if (!pi.hint_string.is_empty())
-            value->set_target_class(pi.hint_string);
-        else
-            value->set_target_class(pi.class_name);
-    }
 
     super::allocate_default_pins();
 }

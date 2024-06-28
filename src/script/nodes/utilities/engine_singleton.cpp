@@ -16,6 +16,7 @@
 //
 #include "engine_singleton.h"
 
+#include "common/property_utils.h"
 #include "common/string_utils.h"
 #include "common/version.h"
 
@@ -63,10 +64,16 @@ bool OScriptNodeEngineSingleton::_set(const StringName& p_name, const Variant& p
     return false;
 }
 
+void OScriptNodeEngineSingleton::post_initialize()
+{
+    reconstruct_node();
+    super::post_initialize();
+}
+
 void OScriptNodeEngineSingleton::allocate_default_pins()
 {
-    Ref<OScriptNodePin> pin = create_pin(PD_Output, "singleton", Variant::OBJECT);
-    pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> pin = create_output_pin(PT_Data, PropertyUtils::create_object("singleton", _singleton));
+    pin->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
     pin->set_label(_singleton);
 
     super::allocate_default_pins();

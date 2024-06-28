@@ -16,6 +16,7 @@
 //
 #include "scene_node.h"
 
+#include "common/property_utils.h"
 #include "common/scene_utils.h"
 
 #include <godot_cpp/classes/engine.hpp>
@@ -79,18 +80,30 @@ bool OScriptNodeSceneNode::_set(const StringName& p_name, const Variant& p_value
     return false;
 }
 
-void OScriptNodeSceneNode::allocate_default_pins()
+Node* OScriptNodeSceneNode::_get_referenced_node() const
 {
-    Ref<OScriptNodePin> path_pin = create_pin(PD_Output, _node_path, Variant::OBJECT);
-    path_pin->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::OBJECT | OScriptNodePin::NO_CAPITALIZE);
-    path_pin->set_target_class("Node");
-
     if (_is_in_editor() && !_node_path.is_empty())
     {
-        Node* root = ((SceneTree*)Engine::get_singleton()->get_main_loop())->get_edited_scene_root();
-        if (Node* target_node = root->get_node_or_null(_node_path))
-            path_pin->set_target_class(target_node->get_class());
+        SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
+        if (st && st->get_edited_scene_root())
+        {
+            const Node* root = st->get_edited_scene_root();
+            if (root)
+                return root->get_node_or_null(_node_path);
+        }
     }
+    return nullptr;
+}
+
+void OScriptNodeSceneNode::allocate_default_pins()
+{
+    StringName target_class = "Node";
+    if (Node* referenced_node = _get_referenced_node())
+        target_class = referenced_node->get_class();
+
+    Ref<OScriptNodePin> path_pin = create_output_pin(PT_Data, PropertyUtils::create_object(StringName(_node_path), target_class));
+    path_pin->set_flag(OScriptNodePin::Flags::OBJECT);
+    path_pin->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
 
     super::allocate_default_pins();
 }
@@ -112,15 +125,10 @@ String OScriptNodeSceneNode::get_icon() const
 
 Ref<OScriptTargetObject> OScriptNodeSceneNode::resolve_target(const Ref<OScriptNodePin>& p_pin) const
 {
-    if (_is_in_editor() && p_pin.is_valid() && p_pin->is_output() && !p_pin->is_execution())
+    if (p_pin->is_output() && !p_pin->is_execution())
     {
-        SceneTree* st = Object::cast_to<SceneTree>(Engine::get_singleton()->get_main_loop());
-        if (st && st->get_edited_scene_root())
-        {
-            Node* root = st->get_edited_scene_root();
-            if (root)
-                return memnew(OScriptTargetObject(root->get_node_or_null(_node_path), false));
-        }
+        if (Node* referenced_node = _get_referenced_node())
+            return memnew(OScriptTargetObject(referenced_node, false));
     }
     return super::resolve_target(p_pin);
 }

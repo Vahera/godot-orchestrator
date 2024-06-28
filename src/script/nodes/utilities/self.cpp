@@ -16,6 +16,7 @@
 //
 #include "self.h"
 
+#include "common/property_utils.h"
 #include "common/version.h"
 
 class OScriptNodeSelfInstance : public OScriptNodeInstance
@@ -50,7 +51,7 @@ void OScriptNodeSelf::post_placed_new_node()
 
 void OScriptNodeSelf::allocate_default_pins()
 {
-    create_pin(PD_Output, "self", Variant::OBJECT)->set_flags(OScriptNodePin::Flags::DATA);
+    create_output_pin(PT_Data, PropertyUtils::create_object("self"));
 }
 
 String OScriptNodeSelf::get_tooltip_text() const

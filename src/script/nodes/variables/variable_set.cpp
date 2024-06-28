@@ -60,34 +60,15 @@ public:
 
 void OScriptNodeVariableSet::allocate_default_pins()
 {
-    create_pin(PD_Input, "ExecIn")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_input_pin(PT_Execution, "ExecIn");
 
-    Ref<OScriptNodePin> v = create_pin(PD_Input, _variable_name, _variable->get_variable_type(), _variable->get_default_value());
-    v->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::NO_CAPITALIZE);
+    Ref<OScriptNodePin> variable = create_input_pin(PT_Data, _variable_name, _variable->get_info(), _variable->get_default_value());
+    variable->set_flag(OScriptNodePin::Flags::NO_CAPITALIZE);
 
-    create_pin(PD_Output, "ExecOut")->set_flags(OScriptNodePin::Flags::EXECUTION);
+    create_output_pin(PT_Execution, "ExecOut");
 
-    Ref<OScriptNodePin> value = create_pin(PD_Output, "value", _variable->get_variable_type());
-    value->set_flags(OScriptNodePin::Flags::DATA | OScriptNodePin::Flags::HIDE_LABEL);
-
-    if (_variable.is_valid())
-    {
-        PropertyInfo pi = _variable->get_info();
-        if (pi.hint == PROPERTY_HINT_FLAGS)
-        {
-            v->set_flags(v->get_flags() | OScriptNodePin::Flags::BITFIELD);
-            v->set_target_class(pi.class_name);
-            v->set_type(Variant::INT);
-        }
-        else if (pi.hint == PROPERTY_HINT_ENUM)
-        {
-            v->set_flags(v->get_flags() | OScriptNodePin::Flags::ENUM);
-            v->set_target_class(pi.class_name);
-            v->set_type(Variant::INT);
-        }
-        else if (!pi.hint_string.is_empty())
-            value->set_target_class(pi.hint_string);
-    }
+    Ref<OScriptNodePin> value = create_output_pin(PT_Data, "value", _variable->get_info());
+    value->set_flag(OScriptNodePin::Flags::HIDE_LABEL);
 
     super::allocate_default_pins();
 }
