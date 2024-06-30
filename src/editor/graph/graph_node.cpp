@@ -478,7 +478,10 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     {
         // Anything but comments
         if (GraphFrame* frame = get_graph()->get_element_frame(get_name()))
-            _context_menu->add_item("Detach from comment frame", CM_DETACH_FRAME);
+        {
+            bool multiple = get_graph()->get_selected_nodes().size() > 1;
+            _context_menu->add_item(vformat("Detach %s from comment frame", multiple ? "selected nodes" : "node"), CM_DETACH_FRAME);
+        }
     }
 
     _context_menu->add_separator("Breakpoints");
@@ -786,7 +789,8 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             }
             case CM_DETACH_FRAME:
             {
-                get_graph()->detach_graph_element_from_frame(get_name());
+                for (OrchestratorGraphNode* selected : get_graph()->get_selected_nodes())
+                    get_graph()->detach_graph_element_from_frame(selected->get_name());
                 break;
             }
             #endif
