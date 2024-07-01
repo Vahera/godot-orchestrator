@@ -26,6 +26,7 @@
 #include "script/nodes/editable_pin_node.h"
 #include "script/nodes/functions/call_function.h"
 #include "script/nodes/functions/call_script_function.h"
+#include "script/nodes/utilities/comment.h"
 #include "script/script.h"
 
 #include <godot_cpp/classes/button.hpp>
@@ -470,7 +471,19 @@ void OrchestratorGraphNode::_show_context_menu(const Vector2& p_position)
     if (!call_script_function.is_valid())
         _context_menu->set_item_disabled(_context_menu->get_item_index(CM_EXPAND_NODE), true);
 
+
     #if GODOT_VERSION >= 0x040300
+    Ref<OScriptNodeComment> comment = _node;
+    if (comment.is_null())
+    {
+        // Anything but comments
+        if (GraphFrame* frame = get_graph()->get_element_frame(get_name()))
+        {
+            bool multiple = get_graph()->get_selected_nodes().size() > 1;
+            _context_menu->add_item(vformat("Detach %s from comment frame", multiple ? "selected nodes" : "node"), CM_DETACH_FRAME);
+        }
+    }
+
     _context_menu->add_separator("Breakpoints");
     _context_menu->add_item("Toggle Breakpoint", CM_TOGGLE_BREAKPOINT, KEY_F9);
     if (_node->has_breakpoint())
@@ -773,6 +786,12 @@ void OrchestratorGraphNode::_on_context_menu_selection(int p_id)
             case CM_DISABLE_BREAKPOINT:
             {
                 _set_breakpoint_state(OScriptNode::BreakpointFlags::BREAKPOINT_DISABLED);
+                break;
+            }
+            case CM_DETACH_FRAME:
+            {
+                for (OrchestratorGraphNode* selected : get_graph()->get_selected_nodes())
+                    get_graph()->detach_graph_element_from_frame(selected->get_name());
                 break;
             }
             #endif
