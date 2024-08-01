@@ -64,6 +64,7 @@ class OrchestratorGraphNode : public GraphNode
         CM_COLLAPSE_FUNCTION,
         CM_EXPAND_NODE,
         CM_RESIZABLE,
+        CM_DETACH_FRAME,
         CM_NODE_ACTION = 1000
     };
 
