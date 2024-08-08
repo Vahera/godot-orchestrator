@@ -66,6 +66,11 @@ void OrchestratorGraphNode::_notification(int p_what)
 {
     if (p_what == NOTIFICATION_READY)
     {
+        // If the user changes the display scale from a larger value to a smaller one, the
+        // size of the nodes will be much larger than needed. To account for this, apply a
+        // resize here at the outset.
+        _fixup_size();
+
         // Update the title bar widget layouts
         HBoxContainer* titlebar = get_titlebar_hbox();
         _indicators = memnew(HBoxContainer);

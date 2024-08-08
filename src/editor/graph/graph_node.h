@@ -170,6 +170,9 @@ public:
     virtual void deselect_group() {}
 
 protected:
+    /// Fixes up the node's size when entering the scene.
+    virtual void _fixup_size() { }
+
     /// Update pins for this graph node
     virtual void _update_pins();
 

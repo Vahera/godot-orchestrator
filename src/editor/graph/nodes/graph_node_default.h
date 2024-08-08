@@ -56,6 +56,7 @@ protected:
     OrchestratorGraphNodeDefault() = default;
 
     //~ Begin OrchestratorGraphNode Interface
+    void _fixup_size() override { set_size(Vector2()); }
     void _update_pins() override;
     //~ End OrchestratorGraphNode Interface
 
