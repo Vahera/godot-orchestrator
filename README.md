@@ -14,13 +14,13 @@ Whether you are an experienced Godot veteran or an aspiring developer eager to g
 
 The following screenshots only scratch the surface of what the plug-in offers out of the box, with much more in future builds.
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/f1f2e971-aa40-485e-19e2-9ba8834cb500/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/4e02bf7b-5e80-4d85-5d66-704f42546300/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/4c99bdef-ed17-46b4-bcad-e71d3ddb7700/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/e3d2ed83-9fe4-4dad-16f7-386b2ae77700/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/db3d458e-3bfd-4e15-ea71-cc75dbb90e00/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/74f8aad9-3cb5-48ce-fde4-53be00f74600/public)
 
-![screen-shot](https://cdn.vahera.cloud/utG8NiO3oN8sfXvI2ZZ0zg/b5ca95e3-1a3c-4376-dacb-df463ef3fa00/public)
+![screen-shot](https://cdn.cratercrash.space/utG8NiO3oN8sfXvI2ZZ0zg/b03d7802-dab2-4791-42b6-2c8c4625af00/public)
 
 ## Godot Compatibility
 
@@ -51,19 +51,18 @@ For complete documentation, see https://docs.cratercrash.com/orchestrator.
 
 ## 🗒️ Changelog
 
-See [CHANGELOG](https://github.com/Vahera/godot-orchestrator/blob/main/CHANGELOG.md).
+See [CHANGELOG](https://github.com/CraterCrash/godot-orchestrator/blob/main/CHANGELOG.md).
 
 ## 📝 Licenses
 
 - Source code: [Apache-2.0 License](/LICENSE)
 - Godot logo: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- Orchestrator logo: [&copy; 2023-present Vahera Studios. All Rights Reserved](https://www.vahera.com/legal/webcn.html)
+- Orchestrator logo: [&copy; 2023-present Crater Crash Studios, LLC. All Rights Reserved](https://www.cratercrash.com/legal/webcn)
 
 ## 💬 Community
 
-- [Vahera Forums](https://forums.vahera.com)
 - [Discord](https://discord.com/invite/J3UWtzWSkT)
-- [Mastodon](https://vahera.social/@orchestrator)
+- [Mastodon](https://cratercrash.social/@orchestrator)
 
 ## 👏 Contributors
 
